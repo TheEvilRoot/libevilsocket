@@ -14,8 +14,9 @@ public:
 	int port;
 	socket_t handle = INVALID_SOCKET;
 	errno_t error = 0;
+    int keepalivesec;
 
-	TcpServer(int port) : port{ port } {
+	TcpServer(int port, int keepalivesec) : port{ port }, keepalivesec{ keepalivesec } {
 		auto init_res = es_init();
 		if (init_res != 0) {
 			error = init_res;
@@ -59,7 +60,7 @@ public:
 	}
 
 	TcpClient* accept_client(bool wait) {
-		auto [address, client] = es_accept(handle, wait);
+		auto [address, client] = es_accept(handle, keepalivesec, wait);
 		if (client == INVALID_SOCKET) {
 			error = es_last_error();
 			return nullptr;

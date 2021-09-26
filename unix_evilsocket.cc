@@ -16,7 +16,7 @@ std::string es_error_message(errno_t error_code) {
   return s;
 }
 
-socket_t es_connect(const std::string& host, int port, int keepalivems) {
+socket_t es_connect(const std::string& host, int port, int keepalivesec) {
   socket_t handle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (handle == INVALID_SOCKET) {
     return INVALID_SOCKET;
@@ -30,6 +30,12 @@ socket_t es_connect(const std::string& host, int port, int keepalivems) {
   auto res = connect(handle, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress));
   if (res == 0)
     return handle;
+
+  int on = 1;
+  int secs = keepalivesec;
+  setsockopt(handle, SOL_SOCKET,  SO_KEEPALIVE, &on, sizeof(on));
+  setsockopt(handle, IPPROTO_TCP, TCP_KEEPALIVE, &secs, sizeof(secs));
+
   return INVALID_SOCKET;
 }
 
@@ -108,12 +114,20 @@ socket_t es_listen(int port, int backlog) {
   return handle;
 }
 
-std::pair<address_t, socket_t> es_accept(socket_t handle, bool wait) {
+std::pair<address_t, socket_t> es_accept(socket_t handle, int keepalivesec, bool wait) {
   address_t clientAddress{};
   socklen_t len = sizeof(clientAddress);
   if (handle == INVALID_SOCKET) {
     errno = ERROR_INVALID_HANDLE;
-    return std::pair(clientAddress, INVALID_SOCKET);
+    return { clientAddress, INVALID_SOCKET };
   }
-  return std::pair(clientAddress, accept(handle, reinterpret_cast<sockaddr*>(&clientAddress), &len));
+
+  auto clientHandle = accept(handle, reinterpret_cast<sockaddr*>(&clientAddress), &len);
+
+  int on = 1;
+  int secs = keepalivesec;
+  setsockopt(clientHandle, SOL_SOCKET,  SO_KEEPALIVE, &on, sizeof(on));
+  setsockopt(clientHandle, IPPROTO_TCP, TCP_KEEPALIVE, &secs, sizeof(secs));
+
+  return { clientAddress, clientHandle };
 }

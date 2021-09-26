@@ -11,10 +11,11 @@ Client/Server socket wrapper on POSIX and Windows socket API.
 - Unix implementation for evilsocket functions
 - Unix test implementation for client and server
 
+- TCP KeepAlive option implementation _(only unix, not tested)_
+
 # TODO
 
 - Test multi-os implementation on Windows
-- TCP KeepAlive option implementation
 - TCP accept no-wait option
 - Send/Recv per-byte implementation
 - Server with multiple clients implementation

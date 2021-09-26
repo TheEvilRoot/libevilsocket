@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 #endif
 
 #if defined(WIN32)
@@ -91,7 +92,7 @@ std::string es_error_message(errno_t error_code);
 * 
 * @return nullptr and set errno on failure, valid socket handle on success.
 **/
-socket_t es_connect(const std::string& host, int port, int keepalivems);
+socket_t es_connect(const std::string& host, int port, int keepalivesec);
 
 /**
 * Close socket handle if it's valid.
@@ -145,7 +146,7 @@ socket_t es_listen(int port, int backlog);
  * @param wait need to wait client or return right after call
  * @return either empty address and invalid socket value  or valid client address and client socket handle if client has been accepted
  */
-std::pair<address_t, socket_t> es_accept(socket_t handle, bool wait);
+std::pair<address_t, socket_t> es_accept(socket_t handle, int keepalivesec, bool wait);
 
 
 #endif //guard
