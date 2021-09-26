@@ -5,13 +5,13 @@
 
 class TcpClient {
 public:
-	SOCKET handle = INVALID_SOCKET;
+	socket_t handle = INVALID_SOCKET;
 	errno_t error = 0;
 	bool closed = false;
 
-	TcpClient(SOCKET handle) : handle{ handle }, error{ 0 } {
+	TcpClient(socket_t handle) : handle{ handle }, error{ 0 } {
 		if (handle == INVALID_SOCKET) {
-			set_error(WSA_INVALID_HANDLE);
+			set_error(ERROR_INVALID_HANDLE);
 		}
 	}
 
@@ -45,7 +45,7 @@ public:
 	}
 
 	TcpClient& operator=(const TcpClient& copy) {
-		throw std::exception("TcpClient cannot be copied");
+		throw SocketException("TcpClient cannot be copied");
 	}
 
 	TcpClient& operator=(TcpClient&& move) noexcept {

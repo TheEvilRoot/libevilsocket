@@ -1,27 +1,54 @@
 #ifndef _EVILSOCKET_H
 #define _EVILSOCKET_H
 
+#ifdef EVILSOCK_WIN
+#include <WinSock2.h>
+#else
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
+
 #if defined(WIN32)
 #define EVILSOCK_WIN
 #define EVILSOCK_TYPE "WINDOWS"
+typedef SOCKET socket_t;
+typedef SOCKADDR_IN address_t;
 #pragma comment(lib, "ws2_32")
+#define ERROR_INVALID_HANDLE WSA_INVALID_HANDLE
 #elif defined(__APPLE__)
 #define EVILSOCK_APPLE
 #define EVILSOCK_POSIX
 #define EVILSOCK_TYPE "POSIX"
+typedef int socket_t;
+typedef sockaddr_in address_t;
+#define INVALID_SOCKET ((socket_t) -1)
+#define ERROR_INVALID_HANDLE EBADF
 #else
 #define EVILSOCK_UNIX
 #define EVILSOCK_POSIX
 #define EVILSOCK_TYPE "POSIX"
+typedef int socket_t;
+#define INVALID_SOCKET ((socket_t) -1)
+#define ERROR_INVALID_HANDLE EBADF
 #endif
 
 #include <cerrno>
 #include <string>
 #include <cstdint>
+#include <utility>
 
-#ifdef EVILSOCK_WIN
-#include <WinSock2.h>
-#endif
+class SocketException: public std::exception {
+ private:
+  std::string message;
+ public:
+  explicit SocketException(std::string  message): message{std::move(message)} {}
+
+  [[nodiscard]] const char * what() const noexcept override {
+    return message.c_str();
+  }
+};
 
 /**
 * Phase 0. Initiate socket library.
@@ -64,14 +91,14 @@ std::string es_error_message(errno_t error_code);
 * 
 * @return nullptr and set errno on failure, valid socket handle on success.
 **/
-SOCKET es_connect(const std::string& host, int port, int keepalivems);
+socket_t es_connect(const std::string& host, int port, int keepalivems);
 
 /**
 * Close socket handle if it's valid.
 * 
 * Client and Server.
 **/
-void es_close(SOCKET handle);
+void es_close(socket_t handle);
 
 /**
 * Write string to socket handle if it's valid.
@@ -80,7 +107,7 @@ void es_close(SOCKET handle);
 * 
 * @return 0 and set error on failure, number of bytes total written on success
 **/
-size_t es_write_string(SOCKET handle, std::string string);
+size_t es_write_string(socket_t handle, const std::string& string);
 
 /**
 * Read string from socket with specified limit.
@@ -89,7 +116,7 @@ size_t es_write_string(SOCKET handle, std::string string);
 * 
 * @return empty string and set error on failure, string with data on success
 **/
-std::string es_recv_string(SOCKET handle, int limit);
+std::string es_recv_string(socket_t handle, int limit);
 
 /**
 * Read string from socket with specified terminator.
@@ -98,11 +125,27 @@ std::string es_recv_string(SOCKET handle, int limit);
 *
 * @return empty string and set error on failure, string with data on success
 **/
-std::string es_recv_string(SOCKET handle, char terminator);
+std::string es_recv_string(socket_t handle, char terminator);
 
-SOCKET es_listen(int port, int backlog);
+/**
+ * Create a server socket, bint it to the port and start listening with backlog
+ *
+ * @param port server port to bind
+ * @param backlog listen backlog
+ * @return server socket handle
+ */
+socket_t es_listen(int port, int backlog);
 
-std::pair<SOCKADDR_IN, SOCKET> es_accept(SOCKET handle, bool wait);
+/**
+ * If wait is true, wait until client connects, accept connection and return address and client handle
+ * If wait is false, return invalid socket value and empty address if there's no connection request from client or client
+ * if there's one.
+ *
+ * @param handle server socket handle
+ * @param wait need to wait client or return right after call
+ * @return either empty address and invalid socket value  or valid client address and client socket handle if client has been accepted
+ */
+std::pair<address_t, socket_t> es_accept(socket_t handle, bool wait);
 
 
 #endif //guard
