@@ -1,38 +1,37 @@
 #ifndef _EVILSOCKET_H
 #define _EVILSOCKET_H
 
-#ifdef EVILSOCK_WIN
-#include <WinSock2.h>
-#else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
-#endif
-
 #if defined(WIN32)
 #define EVILSOCK_WIN
 #define EVILSOCK_TYPE "WINDOWS"
-typedef SOCKET socket_t;
-typedef SOCKADDR_IN address_t;
-#pragma comment(lib, "ws2_32")
 #define ERROR_INVALID_HANDLE WSA_INVALID_HANDLE
 #elif defined(__APPLE__)
 #define EVILSOCK_APPLE
 #define EVILSOCK_POSIX
 #define EVILSOCK_TYPE "POSIX"
-typedef int socket_t;
-typedef sockaddr_in address_t;
 #define INVALID_SOCKET ((socket_t) -1)
 #define ERROR_INVALID_HANDLE EBADF
 #else
 #define EVILSOCK_UNIX
 #define EVILSOCK_POSIX
 #define EVILSOCK_TYPE "POSIX"
-typedef int socket_t;
 #define INVALID_SOCKET ((socket_t) -1)
 #define ERROR_INVALID_HANDLE EBADF
+#endif
+
+#ifdef EVILSOCK_WIN
+#pragma comment(lib, "ws2_32")
+#include <WinSock2.h>
+typedef SOCKET socket_t;
+typedef SOCKADDR_IN address_t;
+#else
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netinet/tcp.h>
+typedef int socket_t;
+typedef sockaddr_in address_t;
 #endif
 
 #include <cerrno>

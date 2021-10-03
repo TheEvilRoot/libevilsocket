@@ -48,9 +48,9 @@ void es_close(SOCKET handle) {
 		closesocket(handle);
 }
 
-size_t es_write_string(SOCKET handle, std::string string) {
+size_t es_write_string(SOCKET handle, const std::string& string) {
 	if (handle == INVALID_SOCKET) {
-		WSASetLastError(WSA_INVALID_HANDLE);
+		WSASetLastError(ERROR_INVALID_HANDLE);
 		return 0;
 	}
 	if (string.length() == 0) {
@@ -118,7 +118,7 @@ SOCKET es_listen(int port, int backlog) {
 	return handle;
 }
 
-std::pair<SOCKADDR_IN, SOCKET> es_accept(SOCKET handle, bool wait) {
+std::pair<SOCKADDR_IN, SOCKET> es_accept(SOCKET handle, int keepalivesec, bool wait) {
 	SOCKADDR_IN clientAddress{};
 	int len = sizeof(clientAddress);
 	if (handle == INVALID_SOCKET) {
