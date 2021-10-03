@@ -22,6 +22,7 @@
 #ifdef EVILSOCK_WIN
 #pragma comment(lib, "ws2_32")
 #include <WinSock2.h>
+#include <mstcpip.h>
 typedef SOCKET socket_t;
 typedef SOCKADDR_IN address_t;
 #else

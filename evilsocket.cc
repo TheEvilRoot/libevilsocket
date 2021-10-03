@@ -38,9 +38,23 @@ SOCKET es_connect(const std::string& host, int port, int keepalivems) {
 	serverAddress.sin_port = htons(port);
 
 	auto res = connect(handle, reinterpret_cast<SOCKADDR*>(&serverAddress), sizeof(serverAddress));
-	if (res == 0)
+	if (res != 0)
+		return INVALID_SOCKET;
+
+	char keepalive = 1;
+	if (setsockopt(handle, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) == SOCKET_ERROR) {
 		return handle;
-	return INVALID_SOCKET;
+	}
+	tcp_keepalive alivein{};
+	alivein.onoff = true;
+	alivein.keepalivetime = keepalivems;
+	alivein.keepaliveinterval = keepalivems;
+	tcp_keepalive aliveout{};
+	unsigned long buffer = 0;
+	if (WSAIoctl(handle, SIO_KEEPALIVE_VALS, &alivein, sizeof(alivein), &aliveout, sizeof(aliveout), &buffer, nullptr, nullptr) == SOCKET_ERROR) {
+		return handle;
+	}
+	return handle;
 }
 
 void es_close(SOCKET handle) {
