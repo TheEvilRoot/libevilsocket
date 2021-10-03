@@ -8,17 +8,19 @@ Client/Server socket wrapper on POSIX and Windows socket API.
 - TcpServer and TcpClient class wrappers 
 - Send/Recv wrappers
 - Simple error handling
+- Unix implementation for evilsocket functions
+- Unix test implementation for client and server
+
+- TCP KeepAlive option implementation _(only unix, not tested)_
 
 # TODO
 
-- Unix implementation for evilsocket functions
-- Unix test implementation for client and server
-- TCP KeepAlive option implementation
+- Test multi-os implementation on Windows
 - TCP accept no-wait option
 - Send/Recv per-byte implementation
 - Server with multiple clients implementation
 - Store client address in TcpClient object coming from accept
- - Where get address on es_connect?
+- Where get address on es_connect?
 
 # Credits
 

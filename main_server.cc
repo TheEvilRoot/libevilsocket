@@ -5,7 +5,7 @@
 
 
 int main() {
-	TcpServer server{ 9000 };
+	TcpServer server{ 90000, 60 };
 	printf("error: %ld\n", server.error);
 	printf("socket: %08x\n", server.handle);
 	printf("message: %s\n", es_error_message(server.error).c_str());
@@ -21,12 +21,16 @@ int main() {
 	printf("error: %ld\n", client->error);
 
 	auto res = client->write_string("HTTP/1.1 200 OK\r\n");
-	resp = client->recv_string('\n');
 	printf("res: %ld\n", res);
 	printf("error: %ld\n", client->error);
 
 	res = client->write_string("Server: EvilSocket/1.0\r\n");
-	resp = client->recv_string('\n');
 	printf("res: %ld\n", res);
 	printf("error: %ld\n", client->error);
+
+    getchar();
+
+    res = client->write_string("Date: Undefined point in space-time continuum\r\n");
+    printf("res: %ld\n", res);
+    printf("error: %ld\n", client->error);
 }

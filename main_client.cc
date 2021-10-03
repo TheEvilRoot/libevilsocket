@@ -4,7 +4,7 @@
 
 
 int main() {
-	TcpClient client{ std::string("127.0.0.1"), 9000 };
+	TcpClient client{ std::string("127.0.0.1"), 90000, 60 };
 	printf("error: %ld\n", client.error);
 	printf("socket: %08x\n", client.handle);
 	printf("message: %s\n", es_error_message(client.error).c_str());
@@ -14,4 +14,12 @@ int main() {
 	auto resp = client.recv_string('\n');
 	printf("resp: %ld %s\n", resp.length(), resp.c_str());
 	printf("error: %ld\n", client.error);
+    getchar();
+    resp = client.recv_string('\n');
+    printf("resp: %ld %s\n", resp.length(), resp.c_str());
+    printf("error: %ld\n", client.error);
+    getchar();
+    resp = client.recv_string('\n');
+    printf("resp: %ld %s\n", resp.length(), resp.c_str());
+    printf("error: %ld\n", client.error);
 }

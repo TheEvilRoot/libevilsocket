@@ -3,7 +3,15 @@
 project ("evilsocket" CXX)
 set(CMAKE_CXX_STANDARD 17)
 
-add_library(${PROJECT_NAME} STATIC "evilsocket.h" "evilsocket.cc" "tcpclient.h" "tcpserver.h")
+if (WIN32)
+    set(EVILSOCK_IMPL evilsocket.cc)
+else()
+    set(EVILSOCK_IMPL unix_evilsocket.cc)
+endif()
+
+set(EVILSOCK_SRC "evilsocket.h" "tcpclient.h" "tcpserver.h" ${EVILSOCK_IMPL})
+
+add_library(${PROJECT_NAME} STATIC ${EVILSOCK_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 add_executable("evilsocket_client" "main_client.cc")

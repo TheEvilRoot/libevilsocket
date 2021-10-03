@@ -1,6 +1,8 @@
 #ifndef _EVILSOCK_TCP_SERVER
 #define _EVILSOCK_TCP_SERVER
 
+#include <stdexcept>
+
 #include "evilsocket.h"
 
 #ifndef _EVILSOCK_TCP_CLIENT
@@ -10,10 +12,11 @@ class TcpClient;
 class TcpServer {
 public:
 	int port;
-	SOCKET handle = INVALID_SOCKET;
+	socket_t handle = INVALID_SOCKET;
 	errno_t error = 0;
+    int keepalivesec;
 
-	TcpServer(int port) : port{ port } {
+	TcpServer(int port, int keepalivesec) : port{ port }, keepalivesec{ keepalivesec } {
 		auto init_res = es_init();
 		if (init_res != 0) {
 			error = init_res;
@@ -42,7 +45,7 @@ public:
 	}
 
 	TcpServer& operator=(const TcpServer& copy) {
-		throw std::exception("TcpServer cannot be copied");
+		throw SocketException("TcpServer cannot be copied");
 	}
 
 	TcpServer& operator=(TcpServer&& move) noexcept {
@@ -57,7 +60,7 @@ public:
 	}
 
 	TcpClient* accept_client(bool wait) {
-		auto [address, client] = es_accept(handle, wait);
+		auto [address, client] = es_accept(handle, keepalivesec, wait);
 		if (client == INVALID_SOCKET) {
 			error = es_last_error();
 			return nullptr;

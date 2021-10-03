@@ -38,9 +38,23 @@ SOCKET es_connect(const std::string& host, int port, int keepalivems) {
 	serverAddress.sin_port = htons(port);
 
 	auto res = connect(handle, reinterpret_cast<SOCKADDR*>(&serverAddress), sizeof(serverAddress));
-	if (res == 0)
+	if (res != 0)
+		return INVALID_SOCKET;
+
+	char keepalive = 1;
+	if (setsockopt(handle, SOL_SOCKET, SO_KEEPALIVE, &keepalive, sizeof(keepalive)) == SOCKET_ERROR) {
 		return handle;
-	return INVALID_SOCKET;
+	}
+	tcp_keepalive alivein{};
+	alivein.onoff = true;
+	alivein.keepalivetime = keepalivems;
+	alivein.keepaliveinterval = keepalivems;
+	tcp_keepalive aliveout{};
+	unsigned long buffer = 0;
+	if (WSAIoctl(handle, SIO_KEEPALIVE_VALS, &alivein, sizeof(alivein), &aliveout, sizeof(aliveout), &buffer, nullptr, nullptr) == SOCKET_ERROR) {
+		return handle;
+	}
+	return handle;
 }
 
 void es_close(SOCKET handle) {
@@ -48,9 +62,9 @@ void es_close(SOCKET handle) {
 		closesocket(handle);
 }
 
-size_t es_write_string(SOCKET handle, std::string string) {
+size_t es_write_string(SOCKET handle, const std::string& string) {
 	if (handle == INVALID_SOCKET) {
-		WSASetLastError(WSA_INVALID_HANDLE);
+		WSASetLastError(ERROR_INVALID_HANDLE);
 		return 0;
 	}
 	if (string.length() == 0) {
@@ -118,7 +132,7 @@ SOCKET es_listen(int port, int backlog) {
 	return handle;
 }
 
-std::pair<SOCKADDR_IN, SOCKET> es_accept(SOCKET handle, bool wait) {
+std::pair<SOCKADDR_IN, SOCKET> es_accept(SOCKET handle, int keepalivesec, bool wait) {
 	SOCKADDR_IN clientAddress{};
 	int len = sizeof(clientAddress);
 	if (handle == INVALID_SOCKET) {
